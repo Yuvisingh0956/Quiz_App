@@ -1,6 +1,8 @@
-from flask_sqlalchemy import SQLAlchemy
+# from flask_sqlalchemy import SQLAlchemy
+from .database import db
+from flask_security import UserMixin, RoleMixin
 
-class User(db.model):
+class User(db.model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
@@ -12,7 +14,7 @@ class User(db.model):
     active  = db.Column(db.Boolean(), nullable=False, default=True)
     roles = db.relationship('Role', secondary='users_roles', backref = 'bearer')
 
-class Role(db.model):
+class Role(db.model, RoleMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
     description = db.Column(db.String(200), nullable=False)
