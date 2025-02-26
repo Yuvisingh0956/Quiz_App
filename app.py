@@ -3,11 +3,14 @@ from application.database import db
 from application.models import User, Role
 from application.config import LocalDevelopmentConfig
 from flask_security import Security, SQLAlchemyUserDatastore, hash_password
+from application.resources import api
+from werkzeug.security import generate_password_hash
 
 def create_app():
     app = Flask(__name__, template_folder='templates')
     app.config.from_object(LocalDevelopmentConfig)
     db.init_app(app)
+    api.init_app(app)
     datastore = SQLAlchemyUserDatastore(db, User, Role)
     app.security = Security(app, datastore)
     app.app_context().push()
@@ -27,7 +30,7 @@ with app.app_context():
         app.security.datastore.create_user(
             email = "user@admin.com",
             username = "admin1",
-            password = hash_password("admin"),
+            password = generate_password_hash("admin"),
             name = "Admin",
             qualification = "B.Tech",
             dob = "1998-01-01",
@@ -39,7 +42,7 @@ with app.app_context():
         app.security.datastore.create_user(
             email = "user1@user.com",
             username = "user1",
-            password = hash_password("user"),
+            password = generate_password_hash("user"),
             name = "Amit",
             qualification = "B.Tech",
             dob = "1998-01-01",
@@ -48,8 +51,6 @@ with app.app_context():
         )
         
     db.session.commit()
-
-# hashed_password = bycrypt(password,salt)
 
 from application.routes import *
 
