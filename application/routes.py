@@ -1,5 +1,5 @@
 from flask import current_app as app, jsonify, request
-from flask_security import hash_password ,auth_required, roles_required, current_user
+from flask_security import hash_password ,auth_required, roles_required, current_user, login_user
 from .database import db
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_security.decorators import unauth_csrf
@@ -28,21 +28,27 @@ def user_home():
     })
 
 @app.route('/api/login', methods = ['POST'])
-# @unauth_csrf
 def login():
     credentials = request.get_json()
-    if not credentials['email']:
-        return jsonify({
-            'message': 'Email is required'
-        }), 400
+    if not credentials:
+        return jsonify({'message': 'Email and password are required'}), 400
+    elif 'email' not in credentials:
+        return jsonify({'message': 'Email is required'}), 400
+    elif 'password' not in credentials:
+        return jsonify({'message': 'Password is required'}), 400
+    
     user = app.security.datastore.find_user(email = credentials['email'])
     
     if user:
         if check_password_hash(user.password, credentials['password']):
+            if current_user:
+                return jsonify({
+                    'message': 'User already logged in'
+                }), 400
+            login_user(user)
             return jsonify({
                 'message': 'Login successful',
                 'auth_token': user.get_auth_token(),
-                # 'token': app.security.generate_token(user),
                 'welcome message' : 'Welcome ' + user.username
             })
         else:
@@ -62,7 +68,7 @@ def create_user():
         app.security.datastore.create_user(
             email = credentials['email'],
             username = credentials['username'],
-            password = hash_password(credentials['password']),
+            password = generate_password_hash(credentials['password']),
             roles = ['user']
         )
         db.session.commit()
