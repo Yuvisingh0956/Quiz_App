@@ -1,0 +1,90 @@
+import u_navbar from "./u_navbar.js";
+
+export default {
+  template: `
+    
+      <div class="container mt-4">
+        <u_navbar></u_navbar>
+        <div class="row justify-content-center">
+          <div class="col-md-8">
+            <div class="card shadow">
+              <div class="card-body">
+                <h2 class="card-title text-center mb-4">
+                  Chapters of {{ subjectName }}
+                </h2>
+                <div v-if="chapters && chapters.length > 0">
+                  <div class="list-group">
+                    <div v-for="chapter in chapters" :key="chapter.id" class="list-group-item d-flex justify-content-between align-items-center">
+                      <div>
+                        <h5 class="mb-1">{{ chapter.name }}</h5>
+                        <p class="mb-1">{{ chapter.description }}</p>
+                      </div>
+                      <button class="btn btn-sm btn-outline-success" @click="seeQuiz(chapter.id)">See Quiz</button>
+                    </div>
+                  </div>
+                </div>
+                <div v-else>
+                  <p class="text-muted">No chapters available.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `,
+  components: {
+    u_navbar: u_navbar,
+  },
+  data() {
+    return {
+      subjectId: null,
+      subjectName: "",
+      chapters: [],
+    };
+  },
+  mounted() {
+    this.getSubjectId();
+    this.fetchChapters();
+  },
+  watch: {
+    "$route.params.subject_id": {
+      handler(newId) {
+        this.subjectId = newId;
+        this.fetchChapters();
+      },
+    },
+  },
+  methods: {
+    getSubjectId() {
+      this.subjectId = this.$route.query.subject_id;
+      this.subjectName = this.$route.query.subject_name || "Unknown Subject";
+      if (!this.subjectId) {
+        console.error("❌ Error: subject_id not found in route.");
+      }
+    },
+    async fetchChapters() {
+      if (!this.subjectId) return;
+      fetch(`/api/subject/${this.subjectId}/chapters`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authentication-Token": localStorage.getItem("auth_token"),
+        },
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          this.chapters = data;
+        })
+        .catch((error) => console.error("Error:", error));
+    },
+    seeQuiz(chapterId) {
+      this.$router.push({
+        path: "/u_quizzes",
+        query: {
+          chapter_id: chapterId,
+          chapter_name: this.chapters.find((c) => c.id === chapterId)?.name,
+        },
+      });
+    },
+  },
+};

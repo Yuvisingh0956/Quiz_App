@@ -2,7 +2,7 @@ from flask import Flask
 from application.database import db
 from application.models import User, Role
 from application.config import LocalDevelopmentConfig
-from flask_security import Security, SQLAlchemyUserDatastore, hash_password
+from flask_security import Security, SQLAlchemyUserDatastore
 from application.resources import api
 from werkzeug.security import generate_password_hash
 
