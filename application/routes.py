@@ -119,6 +119,9 @@ def create_user():
         email=credentials['email'],
         username=credentials['username'],
         password=generate_password_hash(credentials['password']),
+        name=credentials.get('name'),
+        qualification=credentials.get('qualification'),
+        dob=credentials.get('dob'),
         roles=['user']
     )
     db.session.commit()

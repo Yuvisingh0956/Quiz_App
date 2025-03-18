@@ -4,6 +4,7 @@ export default {
   template: `
       <div class="container mt-4">
         <a_navbar></a_navbar>
+        <br>
         <div class="row justify-content-center ">
           <div class="col-md-8 ">
             <div class="card shadow">
@@ -15,12 +16,24 @@ export default {
                 <div class="row">
                   <div class="col-12">
                     <div class="card mb-4">
-                      <div class="card-header bg-dark text-white">Subjects</div>
-                      <button class="btn btn-primary mb-3" @click="openAddSubjectModal">Add Subject</button>
+                      <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                        <span>Subjects</span>
+                        <button class="btn btn-primary btn-sm" @click="openAddSubjectModal">Add Subject</button>
+                      </div>
+
+                      <!-- Search Bar -->
+                      <div class="p-3">
+                        <input 
+                          v-model="searchQuery" 
+                          class="form-control" 
+                          placeholder="Search for a subject..."
+                        />
+                      </div>
+
                       <div class="card-body">
-                        <div v-if="subjects && subjects.length > 0">
+                        <div v-if="filteredSubjects.length > 0">
                           <div class="row">
-                            <div v-for="s in subjects" :key="s.id" class="col-md-6 mb-3">
+                            <div v-for="s in filteredSubjects" :key="s.id" class="col-md-6 mb-3">
                               <div class="border rounded p-2">
                                 <h5 class="card-title">{{ s.name }}</h5>
                                 <p class="card-text">{{ s.description }}</p>
@@ -70,6 +83,7 @@ export default {
   data() {
     return {
       subjects: [],
+      searchQuery: "",
       showModal: false,
       showAddSubjectModal: false,
       subject_id: null,
@@ -77,6 +91,16 @@ export default {
       editingSubject: false,
       subjectData: { name: "", description: "" },
     };
+  },
+  computed: {
+    filteredSubjects() {
+      if (!this.searchQuery) {
+        return this.subjects;
+      }
+      return this.subjects.filter((s) =>
+        s.name.toLowerCase().includes(this.searchQuery.toLowerCase())
+      );
+    },
   },
   mounted() {
     this.fetchSubjects();

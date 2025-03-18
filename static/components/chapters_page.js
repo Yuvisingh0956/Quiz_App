@@ -1,6 +1,10 @@
+import a_navbar from "./a_navbar.js";
+
 export default {
   template: `
     <div class="container mt-4">
+      <a_navbar></a_navbar>
+      <br>
       <div class="row justify-content-center">
         <div class="col-md-8">
           <div class="card shadow">
@@ -8,10 +12,17 @@ export default {
               <h2 class="card-title text-center mb-4">
                 Chapters of {{ subjectName }}
               </h2>
+              <input 
+                type="text" 
+                class="form-control mb-3" 
+                placeholder="Search chapters..." 
+                v-model="searchQuery"
+              />
               <button class="btn btn-primary mb-3" @click="openAddChapterModal">Add Chapter</button>
-              <div v-if="chapters && chapters.length > 0">
+              
+              <div v-if="filteredChapters.length > 0">
                 <div class="list-group">
-                  <div v-for="chapter in chapters" :key="chapter.id" class="list-group-item d-flex justify-content-between align-items-center">
+                  <div v-for="chapter in filteredChapters" :key="chapter.id" class="list-group-item d-flex justify-content-between align-items-center">
                     <div>
                       <h5 class="mb-1">{{ chapter.name }}</h5>
                       <p class="mb-1">{{ chapter.description }}</p>
@@ -25,7 +36,7 @@ export default {
                 </div>
               </div>
               <div v-else>
-                <p class="text-muted">No chapters available.</p>
+                <p class="text-muted">No matching chapters found.</p>
               </div>
             </div>
           </div>
@@ -59,11 +70,13 @@ export default {
       </div>
     </div>
   `,
+  components: { a_navbar },
   data() {
     return {
       subjectId: null,
       subjectName: "",
       chapters: [],
+      searchQuery: "", // New search field
       showChapterModal: false,
       showAddChapterModal: false,
       editingChapter: false,
@@ -75,10 +88,19 @@ export default {
     };
   },
 
+  computed: {
+    filteredChapters() {
+      return this.chapters.filter((chapter) =>
+        chapter.name.toLowerCase().includes(this.searchQuery.toLowerCase())
+      );
+    },
+  },
+
   mounted() {
     this.getSubjectId();
     this.fetchChapters();
   },
+
   watch: {
     "$route.params.subject_id": {
       handler(newId) {
@@ -90,12 +112,8 @@ export default {
 
   methods: {
     getSubjectId() {
-      // Fix: Ensure Vue Router has correctly passed the param
       this.subjectId = this.$route.query.subject_id;
       this.subjectName = this.$route.query.subject_name || "Unknown Subject";
-      // console.log(this.$route.query.subject_name);
-      // console.log("Subject ID:", this.subjectId);
-      // console.log(`/api/subject/${this.subjectId}/chapters`);
       if (!this.subjectId) {
         console.error("❌ Error: subject_id not found in route.");
       }
@@ -155,7 +173,7 @@ export default {
         body: JSON.stringify({
           name: this.chapterData.name,
           description: this.chapterData.description,
-          subject_id: this.subjectId, // Ensure subject ID is passed
+          subject_id: this.subjectId,
         }),
       })
         .then((response) => response.json())

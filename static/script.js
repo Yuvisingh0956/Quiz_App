@@ -13,7 +13,13 @@ import UserChaptersPage from "./components/u_chapters_page.js";
 import UserQuizzesPage from "./components/u_quizzes_page.js";
 import QuizAttempt from "./components/u_quiz_attempt.js";
 import results_page from "./components/results_page.js";
-// import axios from "../node_modules/axios";
+import user_scores from "./components/user_scores.js";
+import u_summary from "./components/u_summary.js";
+import a_summary from "./components/a_summary_page.js";
+import a_student_detail_page from "./components/a_student_detail_page.js";
+import a_user_page from "./components/a_user_page.js";
+import u_transactions from "./components/u_transactions.js";
+import a_transaction from "./components/a_transaction.js";
 
 const routes = [
   { path: "/", component: Home },
@@ -38,6 +44,17 @@ const routes = [
   { path: "/admin/subject/:id", component: ChaptersPage, props: true },
   { path: "/quiz", component: QuizAttempt, props: true },
   { path: "/results", component: results_page },
+  { path: "/user_score", component: user_scores },
+  { path: "/u_summary", component: u_summary },
+  { path: "/a_summary", component: a_summary },
+  { path: "/user_detail", component: a_user_page },
+  {
+    path: "/admin/user-detail",
+    component: a_student_detail_page,
+    props: true,
+  },
+  { path: "/user_transactions", component: u_transactions },
+  { path: "/admin/transactions", component: a_transaction },
 ];
 
 const router = new VueRouter({

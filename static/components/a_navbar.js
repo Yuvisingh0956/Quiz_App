@@ -12,13 +12,13 @@ export default {
               <router-link class="nav-link" to="/a_dashboard">Home</router-link>
             </li>
             <li class="nav-item">
-              <router-link class="nav-link" to="/quiz">Quiz</router-link>
+              <router-link class="nav-link" to="/user_detail">User</router-link>
             </li>
             <li class="nav-item">
-              <router-link class="nav-link" to="/summary">Summary</router-link>
+              <router-link class="nav-link" to="/admin/transactions">Transactions</router-link>
             </li>
             <li class="nav-item">
-              <router-link class="nav-link" to="/search">Search</router-link>
+              <router-link class="nav-link" to="/a_summary">Summary</router-link>
             </li>
             <li class="nav-item">
               <router-link class="nav-link" to="/logout">Logout</router-link>

@@ -12,10 +12,13 @@ export default {
                 <router-link class="nav-link" to="/dashboard">Home</router-link>
               </li>
               <li class="nav-item">
-                <router-link class="nav-link" to="/scores">Scores</router-link>
+                <router-link class="nav-link" to="/user_score">Scores</router-link>
               </li>
               <li class="nav-item">
                 <router-link class="nav-link" to="/u_summary">Summary</router-link>
+              </li>
+              <li class="nav-item">
+                <router-link class="nav-link" to="/user_transactions">Transactions</router-link>
               </li>
               <li class="nav-item">
                 <router-link class="nav-link" to="/logout">Logout</router-link>

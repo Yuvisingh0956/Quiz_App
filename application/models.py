@@ -1,6 +1,7 @@
 # from flask_sqlalchemy import SQLAlchemy
 from .database import db
 from flask_security import UserMixin, RoleMixin
+from datetime import datetime
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -105,62 +106,75 @@ class Scores(db.Model):
             'date_of_quiz': self.date_of_quiz
         }
     
-class UserQuizAttempt(db.Model):
+class UserResponse(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     quiz_id = db.Column(db.Integer, db.ForeignKey('quiz.id'), nullable=False)
-    total_score = db.Column(db.Integer, nullable=False, default=0)  # Total score obtained
-    max_score = db.Column(db.Integer, nullable=False, default=0)  # Maximum possible score
-    duration = db.Column(db.Integer, nullable=False)  # Time taken (in seconds)
-    timestamp = db.Column(db.DateTime, default=db.func.current_timestamp())  # Attempt timestamp
-
-    user = db.relationship('User', backref='quiz_attempts')
-    quiz = db.relationship('Quiz', backref='quiz_attempts')
-
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'user_id': self.user_id,
-            'quiz_id': self.quiz_id,
-            'total_score': self.total_score,
-            'max_score': self.max_score,
-            'duration': self.duration,
-            'timestamp': self.timestamp
-        }
-
-
-class UserResponse(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_attempt_id = db.Column(db.Integer, db.ForeignKey('user_quiz_attempt.id'), nullable=False)
     question_id = db.Column(db.Integer, db.ForeignKey('question.id'), nullable=False)
-    selected_option = db.Column(db.Integer, nullable=False)  # Stores user's selected option
-    is_correct = db.Column(db.Boolean, nullable=False)  # True if selected_option matches correct_option
-    score = db.Column(db.Integer, nullable=False, default=0)  # Score for this question
-    timestamp = db.Column(db.DateTime, default=db.func.current_timestamp())
+    attempt_id = db.Column(db.Integer, db.ForeignKey('scores.id'), nullable=False)
+    selected_option = db.Column(db.Integer, nullable=False)
+    is_correct = db.Column(db.Boolean, nullable=False)
+    attempt_score = db.Column(db.Integer, nullable=False)
+    question_score = db.Column(db.Integer, nullable=False)
+    duration = db.Column(db.Integer, nullable=False)
+    date_of_quiz = db.Column(db.String(20), nullable=False)
+    
 
-    user_attempt = db.relationship('UserQuizAttempt', backref='responses')
-    question = db.relationship('Question', backref='responses')
+class Payment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    quiz_id = db.Column(db.Integer, db.ForeignKey('quiz.id'), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    status = db.Column(db.String(20), nullable=False, default="Pending")  # Pending, Completed, Failed
+    payment_date = db.Column(db.DateTime, default=datetime.utcnow)
+    payment_method = db.Column(db.String(20), nullable=False)  # Credit Card, Debit Card, Net Banking, UPI, Wallet
 
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'user_attempt_id': self.user_attempt_id,
-            'question_id': self.question_id,
-            'selected_option': self.selected_option,
-            'is_correct': self.is_correct,
-            'score': self.score,
-            'timestamp': self.timestamp
-        }
+    user = db.relationship('User', backref=db.backref('payments', lazy=True))
+    quiz = db.relationship('Quiz', backref=db.backref('payments', lazy=True))
+
+# class UserQuizAttempt(db.Model):
+#     id = db.Column(db.Integer, primary_key=True)
+#     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+#     quiz_id = db.Column(db.Integer, db.ForeignKey('quiz.id'), nullable=False)
+#     total_score = db.Column(db.Integer, nullable=False, default=0)  # Total score obtained
+#     max_score = db.Column(db.Integer, nullable=False, default=0)  # Maximum possible score
+#     duration = db.Column(db.Integer, nullable=False)  # Time taken (in seconds)
+#     timestamp = db.Column(db.DateTime, default=db.func.current_timestamp())  # Attempt timestamp
+
+#     user = db.relationship('User', backref='quiz_attempts')
+#     quiz = db.relationship('Quiz', backref='quiz_attempts')
+
+#     def to_dict(self):
+#         return {
+#             'id': self.id,
+#             'user_id': self.user_id,
+#             'quiz_id': self.quiz_id,
+#             'total_score': self.total_score,
+#             'max_score': self.max_score,
+#             'duration': self.duration,
+#             'timestamp': self.timestamp
+#         }
 
 
 # class UserResponse(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-#     question_id = db.Column(db.Integer, db.ForeignKey('question.id'), nullable=False)
-#     attempt_id = db.Column(db.Integer, db.ForeignKey('scores.id'), nullable=False)
-#     selected_option = db.Column(db.Integer, nullable=False)
-#     is_correct = db.Column(db.Boolean, nullable=False)
-#     score = db.Column(db.Integer, nullable=False)
-#     total_score = db.Column(db.Integer, nullable=False)
-#     duration = db.Column(db.Integer, nullable=False)
-#     date_of_quiz = db.Column(db.String(20), nullable=False)
+    # id = db.Column(db.Integer, primary_key=True)
+    # user_attempt_id = db.Column(db.Integer, db.ForeignKey('user_quiz_attempt.id'), nullable=False)
+    # question_id = db.Column(db.Integer, db.ForeignKey('question.id'), nullable=False)
+    # selected_option = db.Column(db.Integer, nullable=False)  # Stores user's selected option
+    # is_correct = db.Column(db.Boolean, nullable=False)  # True if selected_option matches correct_option
+    # score = db.Column(db.Integer, nullable=False, default=0)  # Score for this question
+    # timestamp = db.Column(db.DateTime, default=db.func.current_timestamp())
+
+    # user_attempt = db.relationship('UserQuizAttempt', backref='responses')
+    # question = db.relationship('Question', backref='responses')
+
+    # def to_dict(self):
+    #     return {
+    #         'id': self.id,
+    #         'user_attempt_id': self.user_attempt_id,
+    #         'question_id': self.question_id,
+    #         'selected_option': self.selected_option,
+    #         'is_correct': self.is_correct,
+    #         'score': self.score,
+    #         'timestamp': self.timestamp
+    #     }

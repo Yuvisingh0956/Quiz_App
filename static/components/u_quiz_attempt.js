@@ -115,13 +115,13 @@ export default {
           throw new Error(`HTTP error! Status: ${questionsResponse.status}`);
         const attempts = await questionsResponse.json();
 
-        if (attempts.length > 0) {
-          this.attemptId = attempts[0].attempt_id; // Use the first attempt ID
-        }
+        // if (attempts.length > 0) {
+        //   this.attemptId = attempts[0].attempt_id; // Use the first attempt ID
+        // }
 
         this.questions = attempts.map((attempt) => ({
-          id: attempt.question_id,
-          question: attempt.question_text,
+          id: attempt.id,
+          question: attempt.question,
           options: attempt.options,
         }));
 
@@ -184,18 +184,12 @@ export default {
       }
 
       try {
-        const responses = Object.keys(this.userAnswers).map((questionId) => ({
-          question_id: parseInt(questionId),
-          selected_option: this.userAnswers[questionId],
-        }));
-
         const res = await axios.post(
-          "/api/attempt-quiz",
+          `/api/attempt-quiz`,
           {
             quiz_id: quizId,
-            attempt_id: this.attemptId,
-            responses: responses,
-            date_of_quiz: new Date().toISOString(),
+            answers: this.userAnswers,
+            duration: this.quiz.time_duration * 60 - this.timer,
           },
           {
             headers: {
@@ -204,11 +198,13 @@ export default {
             },
           }
         );
-
         this.feedback = res.data.feedback;
         this.score = res.data.score;
         this.totalMarks = res.data.total_marks;
+        this.attemptId = res.data.attempt_id; // Store the attempt ID
+        localStorage.setItem("attempt_id", this.attemptId);
 
+        // Show blurred background (only behind the pop-up)
         this.$nextTick(() => {
           document.body.insertAdjacentHTML(
             "beforeend",
@@ -223,7 +219,7 @@ export default {
     redirectToResults() {
       this.$router.push({
         path: "/results",
-        query: { quiz_id: this.$route.query.quiz_id },
+        // query: { quiz_id: this.$route.query.quiz_id },
       });
       this.removeBlurEffect();
     },

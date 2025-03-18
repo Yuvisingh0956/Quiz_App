@@ -4,15 +4,25 @@ export default {
   template: `
       <div class="container mt-4">
         <a_navbar></a_navbar>
+        <br>
         <div class="row justify-content-center">
           <div class="col-md-8">
             <div class="card shadow">
               <div class="card-body">
                 <h2 class="card-title text-center mb-4">Quiz for {{ chapterName }}</h2>
                 <button class="btn btn-primary mb-3" @click="openAddQuizModal">Add Quiz</button>
-                <div v-if="quizzes.length > 0">
+
+                <!-- Search Input -->
+                <input
+                  type="text"
+                  class="form-control mb-3"
+                  placeholder="Search quiz..."
+                  v-model="searchQuery"
+                />
+
+                <div v-if="filteredQuizzes.length > 0">
                   <ul class="list-group">
-                    <li v-for="quiz in quizzes" :key="quiz.id" class="list-group-item d-flex justify-content-between align-items-center">
+                    <li v-for="quiz in filteredQuizzes" :key="quiz.id" class="list-group-item d-flex justify-content-between align-items-center">
                       <div>
                         <strong>{{ quiz.name }}</strong>
                         <br>
@@ -22,13 +32,20 @@ export default {
                         <br>
                         <small>Duration: {{ quiz.time_duration }} min</small>
                         <br>
-                        <small>Attempts: {{ quiz.single_attempt }} </small>
+                        <small>Single Attempt: {{ quiz.single_attempt }} </small>
                         <br>
                         <small>Type: {{ quiz.type_of_quiz }}</small>
                         <br>
                         <small>Price: Rs. {{ quiz.price }}</small>
                       </div>
                       <div>
+                        <span class="badge" :class="{
+                            'bg-dark bg-gradient' : quiz.yet_to_start,
+                            'bg-success': !quiz.is_expired,
+                            'bg-danger': quiz.is_expired,
+                          }"
+                          >{{ quiz.yet_to_start ? 'Yet to start' : quiz.is_expired ? 'Expired' : 'Active' }}</span
+                        >
                         <button class="btn btn-sm btn-outline-info me-2" @click="viewQuestions(quiz.id)">Questions</button>
                         <button class="btn btn-sm btn-outline-primary me-2" @click="editQuiz(quiz)">Edit</button>
                         <button class="btn btn-sm btn-outline-danger" @click="deleteQuiz(quiz.id)">Delete</button>
@@ -43,7 +60,7 @@ export default {
             </div>
           </div>
         </div>
-  
+
         <!-- Add/Edit Quiz Modal -->
         <div v-if="showQuizModal" class="modal fade show d-block">
           <div class="modal-dialog">
@@ -85,7 +102,7 @@ export default {
                 </div>
                 <div class="mb-3">
                   <label for="price" class="form-label">Price (in Rs.)</label>
-                  <input type="number" class="form-control" id="price" v-model="quizData.price" defaultValue="0">
+                  <input type="number" class="form-control" id="price" v-model="quizData.price" defaultValue="0" placeholder="0 (for Free quiz)">
                 </div>
               </div>
               <div class="modal-footer">
@@ -105,6 +122,7 @@ export default {
       chapterId: null,
       chapterName: "",
       quizzes: [],
+      searchQuery: "", // Search input model
       showQuizModal: false,
       editingQuiz: false,
       quizData: {
@@ -116,6 +134,8 @@ export default {
         type_of_quiz: "Free",
         end_date: null,
         price: 0,
+        yet_to_start: false,
+        is_expired: false,
       },
     };
   },
@@ -123,10 +143,6 @@ export default {
   mounted() {
     this.chapterId = this.$route.query.chapter_id;
     this.chapterName = this.$route.query.chapter_name;
-    console.log(
-      "🚀 ~ file: quizzes_page.js:107 ~ mounted ~ this.chapterId:",
-      this.chapterId
-    );
 
     if (!this.chapterId) {
       console.error("❌ No chapter_id found in route.");
@@ -135,12 +151,17 @@ export default {
     this.fetchQuizzes();
   },
 
+  computed: {
+    filteredQuizzes() {
+      return this.quizzes.filter((quiz) =>
+        quiz.name.toLowerCase().includes(this.searchQuery.toLowerCase())
+      );
+    },
+  },
+
   methods: {
     async fetchQuizzes() {
-      if (!this.chapterId) {
-        console.error("❌ No chapter_id found in route.");
-        return;
-      }
+      if (!this.chapterId) return;
       fetch(`/api/chapter/${this.chapterId}/quizzes`, {
         method: "GET",
         headers: {
@@ -187,12 +208,7 @@ export default {
           "Content-Type": "application/json",
           "Authentication-Token": localStorage.getItem("auth_token"),
         },
-        body: JSON.stringify({
-          ...this.quizData,
-          single_attempt: this.quizData.single_attempt,
-          time_duration: parseInt(this.quizData.time_duration), // Convert to integer
-          price: parseInt(this.quizData.price), // Convert to integer
-        }),
+        body: JSON.stringify(this.quizData),
       })
         .then(() => {
           this.fetchQuizzes();
@@ -202,13 +218,7 @@ export default {
     },
 
     deleteQuiz(quizId) {
-      fetch(`/api/quiz/${quizId}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          "Authentication-Token": localStorage.getItem("auth_token"),
-        },
-      })
+      fetch(`/api/quiz/${quizId}`, { method: "DELETE" })
         .then(() => this.fetchQuizzes())
         .catch((error) => console.error("❌ Error deleting quiz:", error));
     },
@@ -218,10 +228,7 @@ export default {
     },
 
     viewQuestions(quizId) {
-      this.$router.push({
-        path: "/questions",
-        query: { quiz_id: quizId },
-      });
+      this.$router.push({ path: "/questions", query: { quiz_id: quizId } });
     },
   },
 };

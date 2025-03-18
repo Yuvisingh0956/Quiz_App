@@ -4,31 +4,34 @@ export default {
   template: `
     <div class="container mt-4">
       <a_navbar></a_navbar>
+      <br>
       <div class="row justify-content-center">
         <div class="col-md-8">
           <div class="card shadow">
             <div class="card-body">
               <h2 class="card-title text-center mb-4">Questions for Quiz {{ quizId }}</h2>
+              <input type="text" class="form-control mb-3" placeholder="Search questions..." v-model="searchQuery">
               <button class="btn btn-primary mb-3" @click="openAddQuestionModal">Add Question</button>
-              <div v-if="questions.length > 0">
+              <div v-if="filteredQuestions.length > 0">
                 <ul class="list-group">
-                  <li v-for="question in questions" :key="question.id" class="list-group-item d-flex justify-content-between">
+                  <li v-for="question in filteredQuestions" :key="question.id" class="list-group-item d-flex justify-content-between">
                     <div>
                       <small> <strong>{{ question.question }}</strong> </small>
                       <br>
                       <strong>Options: </strong>
                       <br>
-                      <small>Option 1: {{question.option1}}</small>
+                      <small>Option 1: <strong class="text-danger"> {{ question.option1 }} </strong></small>
                       <br>
-                      <small>Option 2: {{question.option2}}</small>
+                      <small>Option 2: <strong class="text-danger"> {{ question.option2 }} </strong></small>
                       <br>
-                      <small>Option 3: {{question.option3}}</small>
+                      <small>Option 3: <strong class="text-danger"> {{ question.option3 }} </strong></small>
                       <br>
-                      <small>Option 3: {{question.option3}}</small>
+                      <small>Option 4: <strong class="text-danger"> {{ question.option4 }} </strong></small>
                       <br>
-                      <small>Correct Answer: {{ question.correct_option }}</small>
+                      <small><strong>Correct Answer:</strong> Option {{ question.correct_option + 1}} </small>
                       <br>
-                      <small>Explanation: {{ question.explanation }}</small>
+                      
+                      <small>Explanation: <strong class="text-success">{{ question.explanation }}</strong></small>
                       <br>
                       <small>Marks: {{ question.marks }}</small>
                     </div>
@@ -67,7 +70,12 @@ export default {
               </div>
               <div class="mb-3">
                 <label class="form-label">Correct Answer</label>
-                <input type="text" class="form-control" v-model="questionData.correct_option">
+                <select class="form-select" v-model="questionData.correct_option">
+                  <option :value="0">Option 1</option>
+                  <option :value="1">Option 2</option>
+                  <option :value="2">Option 3</option>
+                  <option :value="3">Option 4</option>
+                </select>
               </div>
               <div class="mb-3">
                 <label class="form-label">Explanation</label>
@@ -94,6 +102,7 @@ export default {
     return {
       quizId: null,
       questions: [],
+      searchQuery: "",
       showQuestionModal: false,
       editingQuestion: false,
       questionData: {
@@ -101,11 +110,19 @@ export default {
         quiz_id: null,
         question: "",
         options: ["", "", "", ""],
-        correct_option: "",
+        correct_option: null,
         explanation: "",
         marks: 0,
       },
     };
+  },
+
+  computed: {
+    filteredQuestions() {
+      return this.questions.filter((q) =>
+        q.question.toLowerCase().includes(this.searchQuery.toLowerCase())
+      );
+    },
   },
 
   mounted() {
@@ -159,7 +176,8 @@ export default {
           question.option3,
           question.option4,
         ],
-        correct_option: question[Object.keys(question)[4]],
+        // correct_option: question[Object.keys(question)[4]],
+        correct_option: question.correct_option,
         explanation: question.explanation,
         marks: question.marks,
       };
@@ -180,8 +198,12 @@ export default {
       };
 
       //Convert the correct_option string into the correct index.
-      questionDataToSend.correct_option = this.questionData.options.indexOf(
-        this.questionData.correct_option
+      // questionDataToSend.correct_option = this.questionData.options.indexOf(
+      //   this.questionData.correct_option
+      // );
+
+      questionDataToSend.correct_option = parseInt(
+        questionDataToSend.correct_option
       );
 
       // Remove the original options array

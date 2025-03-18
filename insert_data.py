@@ -9,10 +9,13 @@ try:
     conn = sqlite3.connect(database_path)
     cursor = conn.cursor()
 
-    cursor.execute("INSERT INTO subject (name, description) VALUES ('Math', 'Mathematics')")
-    cursor.execute("INSERT INTO subject (name, description) VALUES ('Physics', 'Physics')")
-    cursor.execute("INSERT INTO subject (name, description) VALUES ('Chemistry', 'Chemistry')")
-    cursor.execute("INSERT INTO subject (name, description) VALUES ('Biology', 'Biology')")
+    # cursor.execute("INSERT INTO subject (name, description) VALUES ('Math', 'Mathematics')")
+    # cursor.execute("INSERT INTO subject (name, description) VALUES ('Physics', 'Physics')")
+    # cursor.execute("INSERT INTO subject (name, description) VALUES ('Chemistry', 'Chemistry')")
+    # cursor.execute("INSERT INTO subject (name, description) VALUES ('Biology', 'Biology')")
+
+    # cursor.execute("DELETE FROM payment")
+    cursor.execute("DROP TABLE IF EXISTS payment")
 
     conn.commit()
     print("Data inserted successfully.")
