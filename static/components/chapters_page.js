@@ -1,8 +1,9 @@
 import a_navbar from "./a_navbar.js";
+import unauthorized_page from "./unauthorized_page.js";
 
 export default {
   template: `
-    <div class="container mt-4">
+    <div v-if="is_authorized" class="container mt-4">
       <a_navbar></a_navbar>
       <br>
       <div class="row justify-content-center">
@@ -69,10 +70,12 @@ export default {
         </div>
       </div>
     </div>
+    <unauthorized_page v-else />
   `,
-  components: { a_navbar },
+  components: { a_navbar, unauthorized_page },
   data() {
     return {
+      is_authorized : false,
       subjectId: null,
       subjectName: "",
       chapters: [],
@@ -98,7 +101,7 @@ export default {
 
   mounted() {
     this.getSubjectId();
-    this.fetchChapters();
+    this.checkAuthorization();
   },
 
   watch: {
@@ -111,8 +114,36 @@ export default {
   },
 
   methods: {
+    checkAuthorization() {
+      fetch("/api/admin_check", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authentication-Token": localStorage.getItem("auth_token"),
+        },
+      })
+        .then((response) => {
+          if (response.status === 200) {
+            this.is_authorized = true;
+            this.fetchChapters();
+          } else {
+            this.is_authorized = false;
+            localStorage.removeItem("auth_token");
+          }
+        })
+        .catch(() => {
+          this.is_authorized = false;
+          localStorage.removeItem("auth_token");
+        });
+    },
     getSubjectId() {
-      this.subjectId = this.$route.query.subject_id;
+      // this.subjectId = this.$route.query.subject_id;
+      if (this.$route.query.subject_id){
+        this.subjectId = this.$route.query.subject_id;
+      }
+      else {
+        this.subjectId = localStorage.getItem("subject_id")
+      }
       this.subjectName = this.$route.query.subject_name || "Unknown Subject";
       if (!this.subjectId) {
         console.error("❌ Error: subject_id not found in route.");

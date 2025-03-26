@@ -1,4 +1,4 @@
-from flask import current_app as app, jsonify, request, render_template
+from flask import current_app as app, jsonify, request, render_template, send_from_directory
 from flask_security import auth_required, roles_required, current_user, login_user, logout_user, login_required, roles_accepted
 from werkzeug.security import check_password_hash, generate_password_hash
 from .database import db
@@ -6,11 +6,19 @@ from datetime import datetime
 import jwt, os
 import sqlite3
 from .models import *
+from celery.result import AsyncResult
+from .task import transaction_csv_report, user_csv_report, monthly_report
 
+cache = app.cache
 
 @app.route('/', methods=['GET'])
 def home():
     return render_template('index.html')
+
+@app.get('/cache')
+@cache.cached(timeout = 5)
+def get_cache():
+    return {"time" : datetime.now()}
 
 # @app.route('/api/subjects', methods=['GET'])
 # def get_subjects():
@@ -158,5 +166,29 @@ def logout():
 
     return response
 
+@app.route('/api/export') # this manually triggers the job
+def export_csv():
+    result = transaction_csv_report.delay() #async object
+    return jsonify({
+        "id": result.id,
+        "result": result.result
+    })
+
+@app.route('/api/transaction_csv_result/<id>') # just created to test the status result
+def csv_result(id):
+    res = AsyncResult(id)
+    return send_from_directory('static', res.result)
 
 
+@app.route('/api/admin_export')
+def export_admin_csv():
+    res = user_csv_report.delay()
+    return jsonify({
+        "id": res.id,
+        "result": res.result
+    })
+
+@app.route('/api/admin_csv_result/<id>') # just created to test the status result
+def admin_csv_result(id):
+    res = AsyncResult(id)
+    return send_from_directory('static', res.result)

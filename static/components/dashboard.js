@@ -1,8 +1,9 @@
 import u_navbar from "./u_navbar.js";
+import unauthorized_page from "./unauthorized_page.js";
 
 export default {
   template: `
-    <div class="container mt-4">
+    <div v-if="is_authorized" class="container mt-4">
       <u_navbar></u_navbar>
       <br>
       <div class="row justify-content-center">
@@ -53,12 +54,15 @@ export default {
         </div>
       </div>
     </div>
+
+    <unauthorized_page v-else />
   `,
 
-  components: { u_navbar },
+  components: { u_navbar, unauthorized_page },
 
   data() {
     return {
+      is_authorized: true,
       userData: "",
       subjects: [],
       searchQuery: "",
@@ -77,6 +81,7 @@ export default {
   },
 
   mounted() {
+    // this.checkAuthorization();
     fetch("/api/home", {
       method: "GET",
       headers: {
@@ -109,6 +114,27 @@ export default {
   },
 
   methods: {
+    checkAuthorization() {
+      fetch("/api/user_check", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authentication-Token": localStorage.getItem("auth_token"),
+        },
+      })
+        .then((response) => {
+          if (response.status === 200) {
+            this.is_authorized = true;
+          } else {
+            this.is_authorized = false;
+            localStorage.removeItem("auth_token");
+          }
+        })
+        .catch(() => {
+          this.is_authorized = false;
+          localStorage.removeItem("auth_token");
+        });
+    },
     goToChapters(subjectId, subjectName) {
       this.$router.push({
         name: "UserChaptersPage",

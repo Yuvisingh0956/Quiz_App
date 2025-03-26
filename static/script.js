@@ -1,4 +1,5 @@
 import Home from "./components/Home.js";
+import unauthorized_page from "./components/unauthorized_page.js";
 import login from "./components/login.js";
 import register from "./components/register.js";
 import NavBar from "./components/navbar.js";
@@ -23,17 +24,18 @@ import a_transaction from "./components/a_transaction.js";
 
 const routes = [
   { path: "/", component: Home },
+  { path: "/unauthorized", component: unauthorized_page},
   { path: "/login", component: login },
   { path: "/register", component: register },
   { path: "/dashboard", component: Dashboard },
   { path: "/a_dashboard", component: a_dashboard },
   {
-    path: "/admin/subject/:subject_id",
+    path: "/admin/subject",
     name: "ChaptersPage",
     component: ChaptersPage,
   },
   {
-    path: "/user/subject/:subject_id",
+    path: "/user/subject",
     name: "UserChaptersPage",
     component: UserChaptersPage,
   },
@@ -66,3 +68,4 @@ const app = new Vue({
   router,
   template: `<router-view></router-view>`, // Only router-view here
 });
+

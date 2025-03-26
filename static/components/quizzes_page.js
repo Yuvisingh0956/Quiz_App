@@ -1,8 +1,9 @@
 import a_navbar from "./a_navbar.js";
+import unauthorized_page from "./unauthorized_page.js";
 
 export default {
   template: `
-      <div class="container mt-4">
+      <div v-if="is_authorized" class="container mt-4">
         <a_navbar></a_navbar>
         <br>
         <div class="row justify-content-center">
@@ -113,12 +114,15 @@ export default {
           </div>
         </div>
       </div>
+
+      <unauthorized_page v-else />
     `,
   components: {
-    a_navbar,
+    a_navbar, unauthorized_page
   },
   data() {
     return {
+      is_authorized: false,
       chapterId: null,
       chapterName: "",
       quizzes: [],
@@ -148,7 +152,7 @@ export default {
       console.error("❌ No chapter_id found in route.");
       return;
     }
-    this.fetchQuizzes();
+    this.checkAuthorization();
   },
 
   computed: {
@@ -160,6 +164,28 @@ export default {
   },
 
   methods: {
+    checkAuthorization() {
+      fetch("/api/admin_check", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authentication-Token": localStorage.getItem("auth_token"),
+        },
+      })
+        .then((response) => {
+          if (response.status === 200) {
+            this.is_authorized = true;
+            this.fetchQuizzes();
+          } else {
+            this.is_authorized = false;
+            localStorage.removeItem("auth_token");
+          }
+        })
+        .catch(() => {
+          this.is_authorized = false;
+          localStorage.removeItem("auth_token");
+        });
+    },
     async fetchQuizzes() {
       if (!this.chapterId) return;
       fetch(`/api/chapter/${this.chapterId}/quizzes`, {

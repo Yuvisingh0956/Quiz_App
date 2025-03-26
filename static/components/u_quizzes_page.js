@@ -1,8 +1,9 @@
 import u_navbar from "./u_navbar.js";
+import unauthorized_page from "./unauthorized_page.js";
 
 export default {
   template: `
-    <div class="container mt-4">
+    <div v-if="is_authorized" class="container mt-4">
       <u_navbar></u_navbar>
       <h1 class="text-center text-primary fw-bold">Available Quizzes</h1>
 
@@ -41,7 +42,7 @@ export default {
             <td>
               <span v-if="isYetToStart(quiz.start_date)" class="badge bg-primary bg-gradient">Yet to start</span>
               <span v-else-if="!isQuizActive(quiz.end_date)" class="badge bg-danger">Expired</span>
-              <span v-else-if="quiz.single_attempt && quiz.attempted && quiz.is_paid" class="badge bg-secondary">Attempted</span>
+              <span v-else-if="quiz.single_attempt == 'Yes' && quiz.attempted && quiz.is_paid" class="badge bg-secondary">Attempted</span>
               <button v-else-if="quiz.type_of_quiz === 'Paid' && !quiz.is_paid" 
                       class="btn btn-warning btn-sm" 
                       @click="payForQuiz(quiz)">
@@ -78,12 +79,14 @@ export default {
         </div>
       </div>
     </div>
+    <unauthorized_page v-else />
   `,
 
-  components: { u_navbar },
+  components: { u_navbar, unauthorized_page },
 
   data() {
     return {
+      is_authorized: false,
       quizzes: [],
       searchQuery: "",
       showPaymentModal: false,
@@ -104,6 +107,28 @@ export default {
   },
 
   methods: {
+    checkAuthorization() {
+      fetch("/api/user_check", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authentication-Token": localStorage.getItem("auth_token"),
+        },
+      })
+        .then((response) => {
+          if (response.status === 200) {
+            this.is_authorized = true;
+            this.fetchQuizzes();
+          } else {
+            this.is_authorized = false;
+            localStorage.removeItem("auth_token");
+          }
+        })
+        .catch(() => {
+          this.is_authorized = false;
+          localStorage.removeItem("auth_token");
+        });
+    },
     async fetchQuizzes() {
       const authToken = localStorage.getItem("auth_token");
       const chapterId = this.$route.query.chapter_id;
@@ -120,8 +145,6 @@ export default {
 
         if (!res.ok) throw new Error("Failed to fetch quizzes");
         this.quizzes = await res.json();
-
-        console.log("Fetched quizzes:", this.quizzes);
       } catch (error) {
         console.error("Error fetching quizzes:", error);
       }
@@ -141,6 +164,9 @@ export default {
     },
 
     isQuizActive(endDate) {
+      if (endDate === "" || endDate === null) {
+        return true;
+      }
       const now = new Date();
       const quizEnd = new Date(endDate);
       return now < quizEnd; // Returns true if the quiz is still active
@@ -211,6 +237,6 @@ export default {
   },
 
   mounted() {
-    this.fetchQuizzes();
+    this.checkAuthorization();
   },
 };

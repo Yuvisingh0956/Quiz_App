@@ -1,8 +1,9 @@
 import u_navbar from "./u_navbar.js";
+import unauthorized_page from "./unauthorized_page.js";
 
 export default {
   template: `
-    <div class="container mt-4">
+    <div v-if="is_authorized" class="container mt-4">
       <u_navbar></u_navbar>
       <h1 class="text-center text-primary fw-bold">My Transactions</h1>
 
@@ -30,17 +31,41 @@ export default {
         </tbody>
       </table>
     </div>
+    <unauthorized_page v-else />
   `,
 
-  components: { u_navbar },
+  components: { u_navbar, unauthorized_page },
 
   data() {
     return {
+      is_authorized: false,
       transactions: [],
     };
   },
 
   methods: {
+    checkAuthorization() {
+      fetch("/api/user_check", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authentication-Token": localStorage.getItem("auth_token"),
+        },
+      })
+        .then((response) => {
+          if (response.status === 200) {
+            this.is_authorized = true;
+            this.fetchTransactions();
+          } else {
+            this.is_authorized = false;
+            localStorage.removeItem("auth_token");
+          }
+        })
+        .catch(() => {
+          this.is_authorized = false;
+          localStorage.removeItem("auth_token");
+        });
+    },
     async fetchTransactions() {
       const authToken = localStorage.getItem("auth_token");
 
@@ -72,6 +97,6 @@ export default {
   },
 
   mounted() {
-    this.fetchTransactions();
+    this.checkAuthorization();
   },
 };

@@ -1,8 +1,9 @@
 import a_navbar from "./a_navbar.js";
+import unauthorized_page from "./unauthorized_page.js";
 
 export default {
   template: `
-    <div class="container mt-4">
+    <div v-if="is_authorized" class="container mt-4">
       <a_navbar></a_navbar>
       
       <br>
@@ -63,14 +64,17 @@ export default {
         </div>
       </div>
     </div>
+    <unauthorized_page v-else/>
   `,
 
   components: {
     a_navbar,
+    unauthorized_page
   },
 
   data() {
     return {
+      is_authorized: false,
       totalUsers: 0,
       totalSubjects: 0,
       totalChapters: 0,
@@ -82,6 +86,28 @@ export default {
   },
 
   methods: {
+    checkAuthorization() {
+      fetch("/api/admin_check", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authentication-Token": localStorage.getItem("auth_token"),
+        },
+      })
+        .then((response) => {
+          if (response.status === 200) {
+            this.is_authorized = true;
+            this.fetchSummary();
+          } else {
+            this.is_authorized = false;
+            localStorage.removeItem("auth_token");
+          }
+        })
+        .catch(() => {
+          this.is_authorized = false;
+          localStorage.removeItem("auth_token");
+        });
+    },
     async fetchSummary() {
       const authToken = localStorage.getItem("auth_token");
       try {
@@ -165,6 +191,6 @@ export default {
   },
 
   mounted() {
-    this.fetchSummary();
+    this.checkAuthorization();
   },
 };

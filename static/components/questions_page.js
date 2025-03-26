@@ -1,15 +1,16 @@
 import a_navbar from "./a_navbar.js";
+import unauthorized_page from "./unauthorized_page.js";
 
 export default {
   template: `
-    <div class="container mt-4">
+    <div v-if="is_authorized" class="container mt-4">
       <a_navbar></a_navbar>
       <br>
       <div class="row justify-content-center">
         <div class="col-md-8">
           <div class="card shadow">
             <div class="card-body">
-              <h2 class="card-title text-center mb-4">Questions for Quiz {{ quizId }}</h2>
+              <h2 class="card-title text-center mb-4">Questions for {{ quiz_name }}</h2>
               <input type="text" class="form-control mb-3" placeholder="Search questions..." v-model="searchQuery">
               <button class="btn btn-primary mb-3" @click="openAddQuestionModal">Add Question</button>
               <div v-if="filteredQuestions.length > 0">
@@ -94,13 +95,16 @@ export default {
         </div>
       </div>
     </div>
+    <unauthorized_page v-else/>
   `,
 
-  components: { a_navbar },
+  components: { a_navbar, unauthorized_page },
 
   data() {
     return {
+      is_authorized: false,
       quizId: null,
+      quiz_name: "",
       questions: [],
       searchQuery: "",
       showQuestionModal: false,
@@ -131,10 +135,32 @@ export default {
       console.error("❌ No quiz_id found in route.");
       return;
     }
-    this.fetchQuestions();
+    this.checkAuthorization();
   },
 
   methods: {
+    checkAuthorization() {
+      fetch("/api/admin_check", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authentication-Token": localStorage.getItem("auth_token"),
+        },
+      })
+        .then((response) => {
+          if (response.status === 200) {
+            this.is_authorized = true;
+            this.fetchQuestions();
+          } else {
+            this.is_authorized = false;
+            localStorage.removeItem("auth_token");
+          }
+        })
+        .catch(() => {
+          this.is_authorized = false;
+          localStorage.removeItem("auth_token");
+        });
+    },
     async fetchQuestions() {
       try {
         const response = await fetch(`/api/quiz/${this.quizId}/questions`, {
@@ -145,7 +171,9 @@ export default {
           },
         });
         if (!response.ok) throw new Error("Failed to fetch questions");
-        this.questions = await response.json();
+        const data = await response.json(); // Get the entire dictionary
+        this.questions = data.questions; // Access the questions array
+        this.quiz_name = data.quiz_name;
       } catch (error) {
         console.error("❌ Error fetching questions:", error);
       }

@@ -1,9 +1,10 @@
 import u_navbar from "./u_navbar.js";
+import unauthorized_page from "./unauthorized_page.js";
 // import Chart from "chart.js/auto";
 
 export default {
   template: `
-    <div class="container mt-4">
+    <div v-if="is_authorized" class="container mt-4">
       <u_navbar></u_navbar>
 
       <h1 class="text-primary text-center fw-bold">Performance Summary</h1>
@@ -20,20 +21,44 @@ export default {
         </div>
       </div>
     </div>
+    <unauthorized_page v-else />
   `,
 
   components: {
-    u_navbar,
+    u_navbar, unauthorized_page
   },
 
   data() {
     return {
+      is_authorized: false,
       subjectPerformance: [],
       recentPerformance: [],
     };
   },
 
   methods: {
+    checkAuthorization() {
+      fetch("/api/user_check", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authentication-Token": localStorage.getItem("auth_token"),
+        },
+      })
+        .then((response) => {
+          if (response.status === 200) {
+            this.is_authorized = true;
+            this.fetchSummary();
+          } else {
+            this.is_authorized = false;
+            localStorage.removeItem("auth_token");
+          }
+        })
+        .catch(() => {
+          this.is_authorized = false;
+          localStorage.removeItem("auth_token");
+        });
+    },
     async fetchSummary() {
       const token = localStorage.getItem("auth_token");
 
@@ -124,6 +149,7 @@ export default {
   },
 
   mounted() {
-    this.fetchSummary();
-  },
+    this.checkAuthorization();
+  }
+  
 };

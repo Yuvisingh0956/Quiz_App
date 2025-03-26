@@ -28,22 +28,4 @@ export default {
       </div>
     </nav>
   `,
-
-  //   methods: {
-  //     home() {
-  //       this.$router.push("/");
-  //     },
-  //     a_quiz() {
-  //       this.$router.push("/quiz");
-  //     },
-  //     a_summary() {
-  //       this.$router.push("/summary");
-  //     },
-  //     a_search() {
-  //       this.$router.push("/search");
-  //     },
-  //     logout() {
-  //       this.$router.push("/logout");
-  //     },
-  //   },
 };

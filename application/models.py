@@ -178,3 +178,4 @@ class Payment(db.Model):
     #         'score': self.score,
     #         'timestamp': self.timestamp
     #     }
+# from flask_sqlalchemy import SQLAlchemy

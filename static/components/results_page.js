@@ -4,50 +4,50 @@ import a_navbar from "./a_navbar.js";
 export default {
   template: `
     <div class="container mt-4 result-page">
-    <div v-if="is_admin">
-      <a_navbar></a_navbar>
-    </div>
-    <div v-else>
-      <u_navbar></u_navbar>
-    </div>
-      <br>
-      <div class="result-summary text-center p-4 rounded shadow bg-light">
-        <h1 class="text-primary fw-bold">Quiz Results</h1>
-        <p class="fs-4 fw-bold">Score: <span class="text-success">{{ score }}</span> / {{ totalMarks }}</p>
-        <p class="fs-5">Time Taken: <span class="fw-bold">{{ formattedTime }}</span></p>
+      <div v-if="is_admin">
+        <a_navbar></a_navbar>
       </div>
+      <div v-else>
+        <u_navbar></u_navbar>
+      </div>
+        <br>
+        <div class="result-summary text-center p-4 rounded shadow bg-light">
+          <h1 class="text-primary fw-bold">Quiz Results</h1>
+          <p class="fs-4 fw-bold">Score: <span class="text-success">{{ score }}</span> / {{ totalMarks }}</p>
+          <p class="fs-5">Time Taken: <span class="fw-bold">{{ formattedTime }}</span></p>
+        </div>
 
-      <div class="feedback-container mt-5">
-      <div>
-        <h2 class="text-center text-secondary" v-if="is_admin">User Attempt</h2>
-        <h2 class="text-center text-secondary" v-else>Your Attempt</h2>
-      </div>
-        <div v-for="(question, index) in feedback" :key="index" class="card mt-3 shadow-sm">
-          <div class="card-body">
-            <h5 class="card-title fw-bold">Q{{ index + 1 }}: {{ question.question_text }}</h5>
-            <div class="attempted-answer mt-2">
-              <span class="badge" :class="{'bg-success': question.is_correct, 'bg-danger': !question.is_correct}">
-                {{ question.is_correct ? 'Correct' : 'Incorrect' }}
-              </span>
+        <div class="feedback-container mt-5">
+        <div>
+          <h2 class="text-center text-secondary" v-if="is_admin">User Attempt</h2>
+          <h2 class="text-center text-secondary" v-else>Your Attempt</h2>
+        </div>
+          <div v-for="(question, index) in feedback" :key="index" class="card mt-3 shadow-sm">
+            <div class="card-body">
+              <h5 class="card-title fw-bold">Q{{ index + 1 }}: {{ question.question_text }}</h5>
+              <div class="attempted-answer mt-2">
+                <span class="badge" :class="{'bg-success': question.is_correct, 'bg-danger': !question.is_correct}">
+                  {{ question.is_correct ? 'Correct' : 'Incorrect' }}
+                </span>
+              </div>
+
+              <ul class="list-group mt-3">
+                <li 
+                  v-for="(option, optIndex) in question.options" 
+                  :key="optIndex" 
+                  class="list-group-item"
+                  :class="getOptionClass(optIndex, question)">
+                  {{ getOptionLetter(optIndex) }}. {{ option }}
+                </li>
+              </ul>
+
+              <p class="text-muted mt-3"><strong>Explanation:</strong> {{ question.explanation }}</p>
+              <p class="fw-bold">Score: <span class="text-primary">{{ question.attempt_score }}</span> / {{ question.question_score }}</p>
             </div>
-
-            <ul class="list-group mt-3">
-              <li 
-                v-for="(option, optIndex) in question.options" 
-                :key="optIndex" 
-                class="list-group-item"
-                :class="getOptionClass(option, question)">
-                {{ getOptionLetter(optIndex) }}. {{ option }}
-              </li>
-            </ul>
-
-            <p class="text-muted mt-3"><strong>Explanation:</strong> {{ question.explanation }}</p>
-            <p class="fw-bold">Score: <span class="text-primary">{{ question.attempt_score }}</span> / {{ question.question_score }}</p>
           </div>
         </div>
-      </div>
 
-      <button @click="goBack" class="btn btn-lg btn-outline-primary mt-4 w-100" v-if="shouldShowButton">All Quiz Attempts</button>
+        <button @click="goBack" class="btn btn-lg btn-outline-primary mt-4 w-100" v-if="shouldShowButton">All Quiz Attempts</button>
     </div>
   `,
 
@@ -109,10 +109,13 @@ export default {
     },
 
     getOptionClass(option, question) {
-      if (option === question.correct_option)
-        return "list-group-item-success fw-bold";
-      if (option === question.selected_option) return "list-group-item-danger";
-      return "";
+      if (String(option) === String(question.correct_option)) {
+        return "list-group-item-success fw-bold"; // Correct option is green
+      }
+      if (String(option) === String(question.selected_option) && option !== question.correct_option) {
+        return "list-group-item-danger"; // Wrongly selected option is red
+      }
+      return "list-group-item";
     },
 
     goBack() {

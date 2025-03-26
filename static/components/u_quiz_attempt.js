@@ -1,6 +1,8 @@
+import unauthorized_page from "./unauthorized_page.js";
+
 export default {
   template: `
-    <div class="quiz-container container mt-4">
+    <div v-if="is_authorized" class="quiz-container container mt-4">
       <!-- Fixed Timer (Top Left) -->
       <div class="fixed-timer">
         <span class="fw-bold">Time Left:</span>
@@ -48,10 +50,17 @@ export default {
         </div>
       </div>
     </div>
+
+    <unauthorized_page v-else />
   `,
+
+  components: {
+    unauthorized_page
+  },
 
   data() {
     return {
+      is_authorized: false,
       quiz: {},
       questions: [],
       userAnswers: {},
@@ -81,6 +90,28 @@ export default {
   },
 
   methods: {
+    checkAuthorization() {
+      fetch("/api/user_check", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authentication-Token": localStorage.getItem("auth_token"),
+        },
+      })
+        .then((response) => {
+          if (response.status === 200) {
+            this.is_authorized = true;
+            this.fetchQuiz();
+          } else {
+            this.is_authorized = false;
+            localStorage.removeItem("auth_token");
+          }
+        })
+        .catch(() => {
+          this.is_authorized = false;
+          localStorage.removeItem("auth_token");
+        });
+    },
     async fetchQuiz() {
       const quizId = this.$route.query.quiz_id;
       const authToken = localStorage.getItem("auth_token");
@@ -231,7 +262,7 @@ export default {
   },
 
   mounted() {
-    this.fetchQuiz();
+    this.checkAuthorization();
     this.removeBlurEffect();
   },
 
