@@ -1,0 +1,10 @@
+Sr No.,Transaction Date,Username,Quiz ID,Quiz Name,Amount,Payment Method,Status
+1,2025-03-18,user1,4,Gravity,39.0,upi,Completed
+2,2025-03-18,user1,1,Unlocking the Unknowns,50.0,debit_card,Completed
+3,2025-03-18,annu23,4,Gravity,39.0,paypal,Completed
+4,2025-03-18,annu23,3,Finding the Missing Piece,49.0,credit_card,Completed
+5,2025-03-26,yogi23,1,Unlocking the Unknowns,50.0,debit_card,Completed
+6,2025-03-26,yogi23,5,Mitochondria,89.0,paypal,Completed
+7,2025-03-26,yogi23,6,Elements of Sets,9.0,debit_card,Completed
+8,2025-03-27,user1,6,Elements of Sets,9.0,upi,Completed
+9,2025-03-27,yuvi34,6,Elements of Sets,29.0,upi,Completed
