@@ -1,4 +1,4 @@
-﻿# Quiz Master
+﻿﻿# Quiz Master
 
 It is a multi-user app (one requires an administrator and other users) that acts as an exam preparation site for multiple courses.
 
@@ -8,13 +8,13 @@ It is a multi-user app (one requires an administrator and other users) that acts
 - Create a virtual environment.
 
 ```
-python3 -m venv venv
+python3 -m venv .venv
 ```
 
 - Activate the virtual environment.
 
 ```
-source venv/bin/activate
+source .venv/bin/activate
 ```
 
 - Install the dependencies.
@@ -23,8 +23,32 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+- In case of error: `ModuleNotFoundError: No module named 'pkg_resources'`
+
+```
+pip install --upgrade setuptools
+```
+
 - Run.
 
 ```
 python app.py
+```
+
+- To run backend task run following each commands in separate terminal in linux or wsl (in each terminal activate virtual environment):
+
+```
+redis-server
+```
+
+```
+celery -A app.celery worker --loglevel=info
+```
+
+```
+celery -A app.celery  beat --loglevel INFO
+```
+
+```
+MailHog
 ```
